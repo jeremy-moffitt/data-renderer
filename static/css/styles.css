@@ -67,6 +67,12 @@ footer {
   gap: 16px;
 }
 
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .control {
   display: grid;
   min-width: 220px;

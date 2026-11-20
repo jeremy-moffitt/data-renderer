@@ -21,10 +21,7 @@
             <span>Dataset</span>
             <select id="dataset-select" aria-label="Dataset"></select>
           </label>
-          <label class="control" id="filter-control" hidden>
-            <span id="filter-label"></span>
-            <select id="filter-select"></select>
-          </label>
+          <div id="filter-controls" class="filter-controls"></div>
         </div>
         <p id="dataset-description" class="dataset-description"></p>
         <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -35,7 +32,7 @@
           </div>
         </div>
       </section>
-      <footer>Charts show vote share as a fraction of all votes cast.</footer>
+      <footer>Choose a dataset and its filters to explore the chart.</footer>
     </main>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
   </body>
