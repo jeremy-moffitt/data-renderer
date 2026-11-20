@@ -1,7 +1,5 @@
 const datasetSelect = document.querySelector("#dataset-select");
-const filterControl = document.querySelector("#filter-control");
-const filterLabel = document.querySelector("#filter-label");
-const filterSelect = document.querySelector("#filter-select");
+const filterControls = document.querySelector("#filter-controls");
 const description = document.querySelector("#dataset-description");
 const status = document.querySelector("#status");
 const chartArea = document.querySelector("#chart-area");
@@ -10,7 +8,7 @@ const svg = document.querySelector("#line-chart");
 
 const svgNamespace = "http://www.w3.org/2000/svg";
 let requestSequence = 0;
-let currentFilterId = null;
+let currentFilters = [];
 
 function appendSvgElement(parent, name, attributes = {}, text = "") {
   const element = document.createElementNS(svgNamespace, name);
@@ -78,7 +76,9 @@ function renderLineChart(chart) {
     class: "axis-line",
   });
 
+  const labelStep = Math.max(1, Math.ceil(chart.labels.length / 12));
   chart.labels.forEach((label, index) => {
+    if (index % labelStep !== 0 && index !== chart.labels.length - 1) return;
     appendSvgElement(svg, "text", {
       x: x(index),
       y: bottom + 22,
@@ -105,13 +105,16 @@ function renderLineChart(chart) {
       class: "series-line",
     });
     series.values.forEach((value, index) => {
-      appendSvgElement(svg, "circle", {
+      const point = appendSvgElement(svg, "circle", {
         cx: x(index),
         cy: y(value),
         r: 3.5,
         fill: series.color,
         class: "series-point",
       });
+      if (series.pointLabels && series.pointLabels[index]) {
+        appendSvgElement(point, "title", {}, series.pointLabels[index]);
+      }
     });
   });
 
@@ -141,8 +144,8 @@ async function loadDataset() {
   if (!datasetId) return;
 
   const query = new URLSearchParams();
-  if (currentFilterId && filterSelect.value) {
-    query.set(currentFilterId, filterSelect.value);
+  for (const filter of currentFilters) {
+    query.set(filter.id, filter.select.value);
   }
   const suffix = query.size ? `?${query}` : "";
   status.textContent = "Loading chart…";
@@ -155,22 +158,25 @@ async function loadDataset() {
     if (sequence !== requestSequence) return;
 
     description.textContent = payload.description;
-    const filter = payload.filters[0];
-    if (filter) {
-      currentFilterId = filter.id;
-      filterLabel.textContent = filter.label;
-      filterSelect.replaceChildren(...filter.options.map((option) => {
+    currentFilters = payload.filters.map((filter) => {
+      const label = document.createElement("label");
+      label.className = "control";
+      const labelText = document.createElement("span");
+      labelText.textContent = filter.label;
+      const select = document.createElement("select");
+      select.setAttribute("aria-label", filter.label);
+      select.replaceChildren(...filter.options.map((option) => {
         const element = document.createElement("option");
         element.value = option.value;
         element.textContent = option.label;
         element.selected = option.value === filter.value;
         return element;
       }));
-      filterControl.hidden = false;
-    } else {
-      currentFilterId = null;
-      filterControl.hidden = true;
-    }
+      select.addEventListener("change", loadDataset);
+      label.append(labelText, select);
+      return { id: filter.id, select, label };
+    });
+    filterControls.replaceChildren(...currentFilters.map((filter) => filter.label));
 
     chartTitle.textContent = payload.chart.title;
     renderLineChart(payload.chart);
@@ -199,10 +205,10 @@ async function initialize() {
       return option;
     }));
     datasetSelect.addEventListener("change", () => {
-      currentFilterId = null;
+      currentFilters = [];
+      filterControls.replaceChildren();
       loadDataset();
     });
-    filterSelect.addEventListener("change", loadDataset);
     await loadDataset();
   } catch (error) {
     status.textContent = error.message;
