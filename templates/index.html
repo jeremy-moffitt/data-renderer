@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Data Renderer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="page-header">
+        <p class="eyebrow">Explore the data</p>
+        <h1>Data dashboard</h1>
+        <p class="intro">Choose a dataset and explore its story.</p>
+      </header>
+
+      <section class="panel" aria-label="Dataset visualization">
+        <div class="controls">
+          <label class="control">
+            <span>Dataset</span>
+            <select id="dataset-select" aria-label="Dataset"></select>
+          </label>
+          <label class="control" id="filter-control" hidden>
+            <span id="filter-label"></span>
+            <select id="filter-select"></select>
+          </label>
+        </div>
+        <p id="dataset-description" class="dataset-description"></p>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div id="chart-area" class="chart-area" hidden>
+          <h2 id="chart-title"></h2>
+          <div class="chart-scroll">
+            <svg id="line-chart" class="line-chart" role="img"></svg>
+          </div>
+        </div>
+      </section>
+      <footer>Charts show vote share as a fraction of all votes cast.</footer>
+    </main>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+  </body>
+</html>
