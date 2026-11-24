@@ -57,6 +57,19 @@ team and year in the dashboard to see the franchise's points in each game,
 with opponent and score details available by hovering over a point. Years use
 the season-ending year, so the 1946–47 season is labeled 1947.
 
+## Download the U.S. city temperature data
+
+Download the CSV from the
+[Record High Temperatures for US Cities in 2015 Kaggle dataset](https://www.kaggle.com/datasets/thedevastator/record-high-temperatures-for-us-cities-in-2015)
+(a free Kaggle account may be required), then place it at:
+
+```text
+datasets/us_cities_temps/Highest temperature on record through 2015 by US City.csv
+```
+
+Select a city in the dashboard to see its record-high temperature for each
+month. The annual maximum column is not plotted.
+
 ## Data and calculations
 
 The election CSV is the source. The dashboard uses the `party_simplified`

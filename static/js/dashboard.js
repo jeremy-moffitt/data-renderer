@@ -95,16 +95,28 @@ function renderLineChart(chart) {
   }, chart.xAxis.label);
 
   chart.series.forEach((series) => {
-    const points = series.values
-      .map((value, index) => `${x(index)},${y(value)}`)
-      .join(" ");
-    appendSvgElement(svg, "polyline", {
-      points,
-      fill: "none",
-      stroke: series.color,
-      class: "series-line",
-    });
+    let points = [];
+    const drawSegment = () => {
+      if (!points.length) return;
+      appendSvgElement(svg, "polyline", {
+        points: points.join(" "),
+        fill: "none",
+        stroke: series.color,
+        class: "series-line",
+      });
+      points = [];
+    };
     series.values.forEach((value, index) => {
+      if (value === null) {
+        drawSegment();
+        return;
+      }
+      points.push(`${x(index)},${y(value)}`);
+    });
+    drawSegment();
+
+    series.values.forEach((value, index) => {
+      if (value === null) return;
       const point = appendSvgElement(svg, "circle", {
         cx: x(index),
         cy: y(value),

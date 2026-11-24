@@ -19,6 +19,7 @@ class DashboardApiTests(unittest.TestCase):
         dataset_ids = [dataset["id"] for dataset in response.json]
         self.assertIn("us_presidential_elections", dataset_ids)
         self.assertIn("nba_games", dataset_ids)
+        self.assertIn("us_cities_temps", dataset_ids)
 
     def test_national_chart_has_expected_years_and_party_series(self) -> None:
         response = self.client.get("/api/datasets/us_presidential_elections")
@@ -95,6 +96,41 @@ class DashboardApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("Unknown NBA team", response.json["error"])
+
+    def test_city_temperature_chart_uses_selected_city(self) -> None:
+        response = self.client.get(
+            "/api/datasets/us_cities_temps?city=BIRMINGHAM,AL"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json
+        chart = payload["chart"]
+        self.assertEqual(payload["filters"][0]["value"], "BIRMINGHAM,AL")
+        self.assertEqual(chart["labels"], [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December",
+        ])
+        self.assertEqual(chart["series"][0]["values"], [
+            81, 83, 89, 92, 99, 106, 107, 105, 102, 94, 85, 80,
+        ])
+        self.assertEqual(chart["yAxis"]["label"], "Temperature (°F)")
+        self.assertIn("Birmingham, AL", chart["title"])
+
+    def test_missing_month_is_returned_as_null(self) -> None:
+        response = self.client.get(
+            "/api/datasets/us_cities_temps?city=SACRAMENTO,CA"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.json["chart"]["series"][0]["values"][4])
+
+    def test_invalid_temperature_city_is_a_client_error(self) -> None:
+        response = self.client.get(
+            "/api/datasets/us_cities_temps?city=NOT_A_CITY"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Unknown city", response.json["error"])
 
     def test_unknown_dataset_is_not_found(self) -> None:
         response = self.client.get("/api/datasets/not_registered")
